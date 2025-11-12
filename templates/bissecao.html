@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Método da Bisseção</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1 class="calc-title">Calculadora Método da Bisseção</h1>
+            <nav class="nav-links">
+                <a href="{{ url_for('index') }}">Início</a>
+                <a href="{{ url_for('page_bissecao') }}" class="active">Bisseção</a>
+                <a href="{{ url_for('page_newton') }}">Newton-Raphson</a>
+            </nav>
+        </header>
+
+        <form id="calc-form">
+            <h2>Como preencher:</h2>
+            <ul>
+                <li><b>Funções:</b> Use `x`. Ex: `x**3 - 9*x + 3` (para potência), `log(x)` (log natural), `exp(-x) - x`.</li>
+                <li>Use a sintaxe Python/Sympy para as funções.</li>
+            </ul>
+            <div class="form-grid">
+                <div class="form-group full-width">
+                    <label for="fx">f(x):</label>
+                    <input type="text" id="fx" name="fx" value="exp(-x) - x">
+                </div>
+                
+                <div class="form-group">
+                    <label for="a">Intervalo [a]:</label>
+                    <input type="text" id="a" name="a" value="0">
+                </div>
+                
+                <div class="form-group">
+                    <label for="b">Intervalo [b]:</label>
+                    <input type="text" id="b" name="b" value="1">
+                </div>
+                
+                <div class="form-group">
+                    <label for="erro">Erro (%):</label>
+                    <input type="text" id="erro" name="erro" value="0.05">
+                </div>
+                
+                <div class="form-group">
+                    <label for="iteracoes">Máx. Iterações:</label>
+                    <input type="text" id="iteracoes" name="iteracoes" value="15">
+                </div>
+                
+                <button type="submit" class="calc-button">Calcular</button>
+            </div>
+        </form>
+
+        <div id="loading">Calculando... 💖</div>
+        <div id="resultado"></div>
+    </div>
+
+    <script>
+        document.getElementById('calc-form').addEventListener('submit', async function(e) {
+            e.preventDefault(); // Impede o envio padrão do form
+            
+            const loading = document.getElementById('loading');
+            const resultadoDiv = document.getElementById('resultado');
+            
+            loading.style.display = 'block';
+            resultadoDiv.innerHTML = '';
+
+            // Pega os dados do form
+            const data = {
+                fx: document.getElementById('fx').value,
+                a: document.getElementById('a').value,
+                b: document.getElementById('b').value,
+                erro: document.getElementById('erro').value,
+                iteracoes: document.getElementById('iteracoes').value
+            };
+
+            // Envia os dados para o backend (app.py)
+            const response = await fetch('/calcular_bissecao', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+            
+            loading.style.display = 'none';
+
+            if (result.erro) {
+                resultadoDiv.innerHTML = `<p style="color: red;">Erro: ${result.erro}</p>`;
+            } else if (result.tabela_html) {
+                resultadoDiv.innerHTML = result.tabela_html;
+            }
+        });
+    </script>
+</body>
+</html>

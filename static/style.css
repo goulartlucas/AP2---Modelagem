@@ -1,0 +1,212 @@
+@import url('https://fonts.googleapis.com/css2?family=Pacifico&family=Nunito:wght@400;700&display=swap');
+
+/* Fontes: 'Pacifico' para o logo, 'Nunito' para o resto */
+
+body {
+    font-family: 'Nunito', sans-serif;
+    /* O fundo pink com brilhos do seu vídeo! */
+    background: #f09;
+    background-image:
+        radial-gradient(white 0.5px, transparent 0.5px),
+        radial-gradient(white 0.5px, #f09 0.5px);
+    background-size: 20px 20px;
+    background-position: 0 0, 10px 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    color: #333;
+}
+
+.container {
+    background: rgba(255, 255, 255, 0.9);
+    padding: 30px 40px;
+    border-radius: 25px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    width: 800px;
+    max-width: 90%;
+    border: 3px solid white;
+}
+
+/* --- Menu Principal --- */
+.menu-container {
+    text-align: center;
+}
+
+.menu-title {
+    font-family: 'Pacifico', cursive;
+    color: #e0218a;
+    font-size: 60px;
+    margin: 0;
+    text-shadow: 2px 2px #ffc1e9;
+}
+
+.menu-subtitle {
+    font-size: 24px;
+    font-weight: 700;
+    color: #555;
+    margin-top: -10px;
+    margin-bottom: 30px;
+}
+
+.menu-button {
+    display: block;
+    background-color: #e0218a;
+    color: white;
+    text-decoration: none;
+    padding: 18px 30px;
+    margin: 15px 0;
+    border-radius: 50px; /* Bem arredondado! */
+    font-size: 20px;
+    font-weight: 700;
+    transition: all 0.3s ease;
+    border: 2px solid #e0218a;
+    box-shadow: 0 4px 15px rgba(224, 33, 138, 0.4);
+}
+
+.menu-button:hover {
+    background-color: white;
+    color: #e0218a;
+    transform: scale(1.03);
+}
+
+/* --- Páginas de Cálculo --- */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #fce4f4;
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+}
+
+.calc-title {
+    font-family: 'Pacifico', cursive;
+    color: #e0218a;
+    font-size: 40px;
+    margin: 0;
+}
+
+.nav-links a {
+    text-decoration: none;
+    color: #666;
+    font-weight: 700;
+    margin-left: 20px;
+    padding: 5px 10px;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+}
+
+.nav-links a:hover,
+.nav-links a.active {
+    background-color: #fce4f4;
+    color: #e0218a;
+}
+
+h2 { /* "Como preencher:" */
+    color: #e0218a;
+    font-weight: 700;
+    font-size: 18px;
+    margin-top: 0;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    font-weight: 700;
+    color: #555;
+    margin-bottom: 5px;
+}
+
+.form-group input {
+    padding: 12px;
+    border: 2px solid #fde7f5;
+    border-radius: 10px;
+    font-size: 16px;
+    font-family: 'Nunito', sans-serif;
+    transition: all 0.3s ease;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: #e0218a;
+    box-shadow: 0 0 10px rgba(224, 33, 138, 0.2);
+}
+
+/* Ocupa a linha toda */
+.form-group.full-width {
+    grid-column: 1 / -1;
+}
+
+.calc-button {
+    grid-column: 1 / -1; /* Ocupa a linha toda */
+    background-color: #e0218a;
+    color: white;
+    border: none;
+    padding: 16px;
+    border-radius: 10px;
+    font-size: 18px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 10px;
+}
+
+.calc-button:hover {
+    background-color: #c41a77;
+    transform: scale(1.01);
+}
+
+/* --- Área de Resultados --- */
+#resultado {
+    margin-top: 30px;
+    overflow-x: auto; /* Para tabelas grandes */
+}
+
+/* Estilo da Tabela do Pandas */
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    background: white;
+}
+
+.table th, .table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #fce4f4;
+}
+
+.table th {
+    background-color: #fce4f4;
+    color: #e0218a;
+    font-weight: 700;
+}
+
+.table tr:nth-child(even) {
+    background-color: #fef8fb;
+}
+
+.table-striped > tbody > tr:nth-child(odd) > td, 
+.table-striped > tbody > tr:nth-child(odd) > th {
+   background-color: #fef8fb;
+}
+
+/* Mensagem de carregando... */
+#loading {
+    display: none;
+    text-align: center;
+    font-size: 18px;
+    color: #e0218a;
+    font-weight: 700;
+    margin-top: 20px;
+}

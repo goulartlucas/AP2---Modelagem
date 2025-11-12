@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Método de Newton-Raphson</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1 class="calc-title">Calculadora Newton-Raphson</h1>
+            <nav class="nav-links">
+                <a href="{{ url_for('index') }}">Início</a>
+                <a href="{{ url_for('page_bissecao') }}">Bisseção</a>
+                <a href="{{ url_for('page_newton') }}" class="active">Newton-Raphson</a>
+            </nav>
+        </header>
+
+        <form id="calc-form">
+            <h2>Como preencher:</h2>
+            <ul>
+                <li><b>Funções:</b> Use `x`. Ex: `x*log(x, 10) - 1` ou `x**3 - 9*x + 3`.</li>
+                <li>Use a sintaxe Python/Sympy para as funções.</li>
+            </ul>
+            <div class="form-grid">
+                <div class="form-group full-width">
+                    <label for="fx">f(x):</label>
+                    <input type="text" id="fx" name="fx" value="x*log(x, 10) - 1">
+                </div>
+                
+                <div class="form-group">
+                    <label for="x0">Estimativa Inicial (X0):</label>
+                    <input type="text" id="x0" name="x0" value="2">
+                </div>
+                
+                <div class="form-group">
+                    <label for="erro">Erro (%):</label>
+                    <input type="text" id="erro" name="erro" value="0.01">
+                </div>
+                
+                <div class="form-group">
+                    <label for="iteracoes">Máx. Iterações:</label>
+                    <input type="text" id="iteracoes" name="iteracoes" value="15">
+                </div>
+                
+                <button type="submit" class="calc-button">Calcular</button>
+            </div>
+        </form>
+
+        <div id="loading">Calculando... ✨</div>
+        <div id="resultado"></div>
+    </div>
+
+    <script>
+        document.getElementById('calc-form').addEventListener('submit', async function(e) {
+            e.preventDefault(); // Impede o envio padrão do form
+            
+            const loading = document.getElementById('loading');
+            const resultadoDiv = document.getElementById('resultado');
+            
+            loading.style.display = 'block';
+            resultadoDiv.innerHTML = '';
+
+            // Pega os dados do form
+            const data = {
+                fx: document.getElementById('fx').value,
+                x0: document.getElementById('x0').value,
+                erro: document.getElementById('erro').value,
+                iteracoes: document.getElementById('iteracoes').value
+            };
+
+            // Envia os dados para o backend (app.py)
+            const response = await fetch('/calcular_newton', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+            
+            loading.style.display = 'none';
+
+            if (result.erro) {
+                resultadoDiv.innerHTML = `<p style="color: red;">Erro: ${result.erro}</p>`;
+            } else if (result.tabela_html) {
+                resultadoDiv.innerHTML = result.tabela_html;
+            }
+        });
+    </script>
+</body>
+</html>

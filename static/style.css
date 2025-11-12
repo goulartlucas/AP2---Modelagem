@@ -16,6 +16,7 @@ body {
     align-items: center;
     min-height: 100vh;
     color: #333;
+    overflow-x: hidden; /* Previne scroll horizontal */
 }
 
 .container {
@@ -23,14 +24,26 @@ body {
     padding: 30px 40px;
     border-radius: 25px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-    width: 800px;
-    max-width: 90%;
+    width: 1200px;
+    max-width: 95%;
     border: 3px solid white;
+}
+
+/* Container específico para menu */
+.container.menu-container {
+    width: 650px;
 }
 
 /* --- Menu Principal --- */
 .menu-container {
     text-align: center;
+    position: relative;
+    overflow: visible;
+}
+
+.menu-container > * {
+    position: relative;
+    z-index: 1;
 }
 
 .menu-title {
@@ -70,6 +83,36 @@ body {
     transform: scale(1.03);
 }
 
+/* Imagem da Barbie decorativa */
+.barbie-image {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 350px;
+    height: auto;
+    opacity: 1;
+    pointer-events: none;
+    z-index: 1;
+    filter: drop-shadow(0 4px 12px rgba(224, 33, 138, 0.6));
+    transform: none;
+}
+
+/* Container do menu tem z-index maior */
+.menu-container {
+    position: relative;
+    z-index: 10;
+}
+
+/* Ajuste para telas menores */
+@media (max-width: 768px) {
+    .barbie-image {
+        width: 160px;
+        bottom: 0;
+        left: 0;
+        opacity: 1;
+    }
+}
+
 /* --- Páginas de Cálculo --- */
 .header {
     display: flex;
@@ -78,23 +121,33 @@ body {
     border-bottom: 2px solid #fce4f4;
     padding-bottom: 15px;
     margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 15px;
 }
 
 .calc-title {
     font-family: 'Pacifico', cursive;
     color: #e0218a;
-    font-size: 40px;
+    font-size: 36px;
     margin: 0;
+    flex: 1 1 auto;
+    min-width: 300px;
+}
+
+.nav-links {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
 }
 
 .nav-links a {
     text-decoration: none;
     color: #666;
     font-weight: 700;
-    margin-left: 20px;
-    padding: 5px 10px;
+    padding: 8px 16px;
     border-radius: 10px;
     transition: all 0.3s ease;
+    white-space: nowrap;
 }
 
 .nav-links a:hover,
@@ -106,14 +159,26 @@ body {
 h2 { /* "Como preencher:" */
     color: #e0218a;
     font-weight: 700;
-    font-size: 18px;
+    font-size: 20px;
     margin-top: 0;
+    margin-bottom: 15px;
+}
+
+/* Instruções */
+form ul {
+    margin: 10px 0 20px 20px;
+    padding: 0;
+}
+
+form ul li {
+    margin-bottom: 8px;
+    line-height: 1.5;
 }
 
 .form-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 15px;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
     margin-top: 20px;
 }
 
@@ -126,15 +191,18 @@ h2 { /* "Como preencher:" */
     font-weight: 700;
     color: #555;
     margin-bottom: 5px;
+    font-size: 15px;
 }
 
 .form-group input {
-    padding: 12px;
+    padding: 12px 15px;
     border: 2px solid #fde7f5;
     border-radius: 10px;
     font-size: 16px;
     font-family: 'Nunito', sans-serif;
     transition: all 0.3s ease;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .form-group input:focus {
@@ -149,13 +217,13 @@ h2 { /* "Como preencher:" */
 }
 
 .calc-button {
-    grid-column: 1 / -1; /* Ocupa a linha toda */
+    grid-column: 1 / -1; /* Ocupa todas as colunas */
     background-color: #e0218a;
     color: white;
     border: none;
-    padding: 16px;
+    padding: 18px;
     border-radius: 10px;
-    font-size: 18px;
+    font-size: 20px;
     font-weight: 700;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -177,19 +245,30 @@ h2 { /* "Como preencher:" */
 .table {
     width: 100%;
     border-collapse: collapse;
-    text-align: left;
+    text-align: center;
     background: white;
+    table-layout: auto;
 }
 
 .table th, .table td {
-    padding: 10px 12px;
+    padding: 12px 15px;
     border-bottom: 1px solid #fce4f4;
+    text-align: center;
+    vertical-align: middle;
 }
 
 .table th {
     background-color: #fce4f4;
     color: #e0218a;
     font-weight: 700;
+    text-align: center;
+}
+
+/* Primeira coluna (índice) alinhada ao centro */
+.table tbody th {
+    background-color: #fef8fb;
+    font-weight: 700;
+    text-align: center;
 }
 
 .table tr:nth-child(even) {
@@ -201,6 +280,19 @@ h2 { /* "Como preencher:" */
    background-color: #fef8fb;
 }
 
+/* Formatação de números na tabela */
+.table td {
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+}
+
+/* Destaque para colunas específicas */
+.table thead th:first-child,
+.table tbody th {
+    background-color: #fce4f4;
+    font-weight: 700;
+}
+
 /* Mensagem de carregando... */
 #loading {
     display: none;
@@ -209,4 +301,226 @@ h2 { /* "Como preencher:" */
     color: #e0218a;
     font-weight: 700;
     margin-top: 20px;
+}
+
+/* Loading Spinner */
+.spinner {
+    border: 4px solid #fce4f4;
+    border-top: 4px solid #e0218a;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin: 20px auto;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Validação de Input */
+.form-group input.invalid {
+    border-color: #ff4444;
+    background-color: #fff5f5;
+}
+
+.form-group input.valid {
+    border-color: #4caf50;
+}
+
+.error-message {
+    color: #ff4444;
+    font-size: 12px;
+    margin-top: 3px;
+    display: none;
+}
+
+.error-message.show {
+    display: block;
+}
+
+/* Mensagens de Resultado */
+.result-success {
+    background-color: #e8f5e9;
+    border-left: 4px solid #4caf50;
+    padding: 15px;
+    margin: 15px 0;
+    border-radius: 8px;
+    color: #2e7d32;
+}
+
+.result-error {
+    background-color: #ffebee;
+    border-left: 4px solid #f44336;
+    padding: 15px;
+    margin: 15px 0;
+    border-radius: 8px;
+    color: #c62828;
+}
+
+/* Highlight na linha final da tabela */
+.table tbody tr:last-child {
+    background-color: #fff0f8 !important;
+    font-weight: 700;
+    border: 2px solid #e0218a;
+}
+
+/* Animação de fade-in para resultados */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in {
+    animation: fadeIn 0.5s ease-in;
+}
+
+/* Tooltip */
+.tooltip-icon {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    background-color: #e0218a;
+    color: white;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 16px;
+    font-size: 12px;
+    margin-left: 5px;
+    cursor: help;
+    position: relative;
+}
+
+.tooltip-icon:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 125%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #333;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    white-space: nowrap;
+    font-size: 12px;
+    z-index: 1000;
+    font-weight: normal;
+}
+
+/* Botão desabilitado */
+.calc-button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.calc-button:disabled:hover {
+    background-color: #ccc;
+    transform: none;
+}
+
+/* Exemplos de função */
+.function-examples {
+    background-color: #fef8fb;
+    padding: 10px;
+    border-radius: 8px;
+    margin-top: 5px;
+    font-size: 13px;
+}
+
+.function-examples strong {
+    color: #e0218a;
+}
+
+.function-examples code {
+    background-color: white;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    color: #666;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .container {
+        width: 100%;
+        padding: 20px;
+    }
+    
+    .calc-title {
+        font-size: 28px;
+    }
+    
+    .header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .nav-links {
+        width: 100%;
+        justify-content: flex-start;
+    }
+    
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .menu-title {
+        font-size: 48px;
+    }
+}
+
+@media (min-width: 769px) and (max-width: 1200px) {
+    .container {
+        width: 95%;
+    }
+    
+    .calc-title {
+        font-size: 32px;
+    }
+}
+
+/* --- Emojis de estrelas pulsantes (apenas na home) --- */
+.emoji-stars {
+    position: fixed; /* cobre toda a viewport, JS posiciona as estrelas fora do container */
+    inset: 0;
+    pointer-events: none;
+    z-index: 9; /* abaixo do container (menu-container tem z-index:10) */
+}
+
+.emoji-stars .star {
+    position: absolute;
+    transform: translate(-50%, -50%) scale(1);
+    font-size: 18px; /* menor por sua solicitação */
+    will-change: transform, opacity;
+    opacity: 0.95;
+    /* duração (--d), tamanho base (--s) e atraso (--delay) são definidos inline nos elementos */
+    animation: pulse var(--d, 3s) ease-in-out var(--delay, 0s) infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: translate(-50%, -50%) scale(var(--s, 1)); opacity: 0.85; }
+    50% { transform: translate(-50%, -50%) scale(calc(var(--s, 1) * 1.3)); opacity: 1; }
+}
+
+/* deixar invisível em telas pequenas para não atrapalhar a UI */
+@media (max-width: 991px) {
+    .emoji-stars { display: none; }
+}
+
+@keyframes shimmer {
+    0% { transform: translateX(-120%); }
+    100% { transform: translateX(120%); }
+}
+
+/* Esconder glitter em telas pequenas para melhor leitura */
+@media (max-width: 1199px) {
+    .glitter-overlay { display: none; }
 }

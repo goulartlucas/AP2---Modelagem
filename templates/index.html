@@ -7,16 +7,107 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <div class="container menu-container">
-        <h1 class="menu-title">Barbie</h1>
-        <h2 class="menu-subtitle">Calculadoras Glamourosas</h2>
-        
-        <a href="{{ url_for('page_bissecao') }}" class="menu-button">
-            💖 Método da Bisseção
-        </a>
-        <a href="{{ url_for('page_newton') }}" class="menu-button">
-            ✨ Método de Newton-Raphson
-        </a>
+    <!-- Imagem da Barbie no fundo -->
+    <img src="{{ url_for('static', filename='images/barbie.png') }}" alt="Barbie" class="barbie-image">
+    <div class="menu-wrap" style="position:relative; display:inline-block;">
+        <!-- emojis de estrela distribuídos aleatoriamente (evitam a área do container) -->
+        <div class="emoji-stars" id="emoji-stars" aria-hidden="true"></div>
+
+        <div class="container menu-container">
+            <h1 class="menu-title">Barbie Calculadora</h1>
+            
+            <a href="{{ url_for('page_bissecao') }}" class="menu-button">
+                💖 Método da Bisseção
+            </a>
+            <a href="{{ url_for('page_newton') }}" class="menu-button">
+                ✨ Método de Newton-Raphson
+            </a>
+        </div>
     </div>
+
+    <script>
+        // Posiciona estrelas aleatoriamente pela viewport, evitando áreas importantes
+        // (container principal e imagem da Barbie) e mantendo distância mínima entre estrelas
+        (function() {
+            const STAR_COUNT = 14;
+            const MIN_DISTANCE = 48; // px entre estrelas
+            const EDGE_PADDING = 12; // distância das bordas da viewport
+            const starsRoot = document.getElementById('emoji-stars');
+            const container = document.querySelector('.container.menu-container');
+            const barbieImg = document.querySelector('.barbie-image');
+            if (!starsRoot || !container) return;
+
+            function rand(min, max) { return Math.random() * (max - min) + min; }
+
+            function rectFor(el) {
+                if (!el) return null;
+                return el.getBoundingClientRect();
+            }
+
+            function pointInRect(x, y, rect, padding = 0) {
+                return x >= rect.left - padding && x <= rect.right + padding &&
+                       y >= rect.top - padding && y <= rect.bottom + padding;
+            }
+
+            function tooClose(x, y, points, minDist) {
+                for (const p of points) {
+                    const dx = p.x - x;
+                    const dy = p.y - y;
+                    if ((dx*dx + dy*dy) < (minDist * minDist)) return true;
+                }
+                return false;
+            }
+
+            function placeStars() {
+                starsRoot.innerHTML = '';
+                const rect = rectFor(container);
+                const barbieRect = rectFor(barbieImg);
+                const w = window.innerWidth;
+                const h = window.innerHeight;
+
+                const placed = [];
+
+                for (let i = 0; i < STAR_COUNT; i++) {
+                    let x, y, tries = 0;
+                    do {
+                        x = rand(EDGE_PADDING, w - EDGE_PADDING);
+                        y = rand(EDGE_PADDING, h - EDGE_PADDING);
+                        tries++;
+                        // rejeita pontos dentro do container ou sobre a barbie
+                        if (rect && pointInRect(x, y, rect, 18)) continue;
+                        if (barbieRect && pointInRect(x, y, barbieRect, 8)) continue;
+                        // rejeita pontos muito próximos a outros já colocados
+                        if (tooClose(x, y, placed, MIN_DISTANCE)) continue;
+                        break;
+                    } while (tries < 500);
+
+                    // se falhar em achar posição válida após tentativas, pula
+                    if (tries >= 500) continue;
+
+                    const span = document.createElement('span');
+                    span.className = 'star';
+                    span.textContent = '⭐';
+                    span.style.left = x + 'px';
+                    span.style.top = y + 'px';
+                    const s = (rand(0.8, 1.05)).toFixed(2);
+                    const d = (rand(2.4, 4.0)).toFixed(2) + 's';
+                    const delay = (rand(0, 1.8)).toFixed(2) + 's';
+                    span.style.setProperty('--s', s);
+                    span.style.setProperty('--d', d);
+                    span.style.setProperty('--delay', delay);
+                    starsRoot.appendChild(span);
+                    placed.push({x, y});
+                }
+            }
+
+            // Inicial e quando a janela redimensionar
+            placeStars();
+            let resizeTimer = null;
+            window.addEventListener('resize', () => {
+                clearTimeout(resizeTimer);
+                resizeTimer = setTimeout(placeStars, 240);
+            });
+        })();
+    </script>
 </body>
 </html>

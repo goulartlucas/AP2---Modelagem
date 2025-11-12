@@ -22,69 +22,181 @@
             <ul>
                 <li><b>Funções:</b> Use `x`. Ex: `x*log(x, 10) - 1` ou `x**3 - 9*x + 3`.</li>
                 <li>Use a sintaxe Python/Sympy para as funções.</li>
+                <li><b>Dica:</b> Escolha um X0 próximo da raiz esperada para convergência mais rápida!</li>
             </ul>
             <div class="form-grid">
                 <div class="form-group full-width">
-                    <label for="fx">f(x):</label>
-                    <input type="text" id="fx" name="fx" value="x*log(x, 10) - 1">
+                    <label for="fx">
+                        f(x):
+                        <span class="tooltip-icon" data-tooltip="Exemplo: x*log(x, 10) - 1 ou x**2 - 4">?</span>
+                    </label>
+                    <input type="text" id="fx" name="fx" value="x*log(x, 10) - 1" required>
+                    <span class="error-message" id="fx-error">Digite uma função válida</span>
+                    <div class="function-examples">
+                        <strong>Exemplos:</strong> 
+                        <code>x*log(x, 10) - 1</code>, 
+                        <code>x**3 - 9*x + 3</code>, 
+                        <code>cos(x) - x</code>,
+                        <code>exp(x) - 3*x</code>
+                    </div>
                 </div>
                 
                 <div class="form-group">
-                    <label for="x0">Estimativa Inicial (X0):</label>
-                    <input type="text" id="x0" name="x0" value="2">
+                    <label for="x0">
+                        Estimativa Inicial (X0):
+                        <span class="tooltip-icon" data-tooltip="Valor inicial para começar as iterações">?</span>
+                    </label>
+                    <input type="number" step="any" id="x0" name="x0" value="2" required>
+                    <span class="error-message" id="x0-error">Digite um número válido</span>
                 </div>
                 
                 <div class="form-group">
-                    <label for="erro">Erro (%):</label>
-                    <input type="text" id="erro" name="erro" value="0.01">
+                    <label for="erro">
+                        Erro (%):
+                        <span class="tooltip-icon" data-tooltip="Tolerância de erro em porcentagem">?</span>
+                    </label>
+                    <input type="number" step="any" id="erro" name="erro" value="0.01" min="0.0001" required>
+                    <span class="error-message" id="erro-error">Erro deve ser > 0</span>
                 </div>
                 
                 <div class="form-group">
-                    <label for="iteracoes">Máx. Iterações:</label>
-                    <input type="text" id="iteracoes" name="iteracoes" value="15">
+                    <label for="iteracoes">
+                        Máx. Iterações:
+                        <span class="tooltip-icon" data-tooltip="Número máximo de iterações permitidas">?</span>
+                    </label>
+                    <input type="number" id="iteracoes" name="iteracoes" value="15" min="1" max="100" required>
+                    <span class="error-message" id="iteracoes-error">Entre 1 e 100</span>
                 </div>
                 
-                <button type="submit" class="calc-button">Calcular</button>
+                <button type="submit" class="calc-button" id="calc-btn">Calcular ✨</button>
             </div>
         </form>
 
-        <div id="loading">Calculando... ✨</div>
+        <div id="loading" style="display: none;">
+            <div class="spinner"></div>
+            <p>Calculando... ✨</p>
+        </div>
         <div id="resultado"></div>
     </div>
 
     <script>
+        // Validação em tempo real
+        const inputs = {
+            fx: document.getElementById('fx'),
+            x0: document.getElementById('x0'),
+            erro: document.getElementById('erro'),
+            iteracoes: document.getElementById('iteracoes')
+        };
+
+        const calcBtn = document.getElementById('calc-btn');
+
+        function validateInput(inputId) {
+            const input = inputs[inputId];
+            const errorMsg = document.getElementById(`${inputId}-error`);
+            let isValid = true;
+
+            if (inputId === 'fx') {
+                isValid = input.value.trim().length > 0;
+            } else if (inputId === 'x0' || inputId === 'erro') {
+                isValid = !isNaN(parseFloat(input.value)) && input.value.trim() !== '';
+                if (inputId === 'erro' && isValid) {
+                    isValid = parseFloat(input.value) > 0;
+                }
+            } else if (inputId === 'iteracoes') {
+                const val = parseInt(input.value);
+                isValid = !isNaN(val) && val >= 1 && val <= 100;
+            }
+
+            if (isValid) {
+                input.classList.remove('invalid');
+                input.classList.add('valid');
+                errorMsg.classList.remove('show');
+            } else {
+                input.classList.add('invalid');
+                input.classList.remove('valid');
+                errorMsg.classList.add('show');
+            }
+
+            return isValid;
+        }
+
+        function validateForm() {
+            let allValid = true;
+            for (let key in inputs) {
+                if (!validateInput(key)) {
+                    allValid = false;
+                }
+            }
+            calcBtn.disabled = !allValid;
+            return allValid;
+        }
+
+        // Adiciona listeners para validação em tempo real
+        for (let key in inputs) {
+            inputs[key].addEventListener('input', () => validateForm());
+            inputs[key].addEventListener('blur', () => validateInput(key));
+        }
+
+        // Validação inicial
+        validateForm();
+
         document.getElementById('calc-form').addEventListener('submit', async function(e) {
-            e.preventDefault(); // Impede o envio padrão do form
+            e.preventDefault();
+            
+            if (!validateForm()) {
+                return;
+            }
             
             const loading = document.getElementById('loading');
             const resultadoDiv = document.getElementById('resultado');
             
             loading.style.display = 'block';
             resultadoDiv.innerHTML = '';
+            calcBtn.disabled = true;
 
-            // Pega os dados do form
             const data = {
-                fx: document.getElementById('fx').value,
-                x0: document.getElementById('x0').value,
-                erro: document.getElementById('erro').value,
-                iteracoes: document.getElementById('iteracoes').value
+                fx: inputs.fx.value,
+                x0: inputs.x0.value,
+                erro: inputs.erro.value,
+                iteracoes: inputs.iteracoes.value
             };
 
-            // Envia os dados para o backend (app.py)
-            const response = await fetch('/calcular_newton', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            });
+            try {
+                const response = await fetch('/calcular_newton', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
 
-            const result = await response.json();
-            
-            loading.style.display = 'none';
+                const result = await response.json();
+                
+                loading.style.display = 'none';
+                calcBtn.disabled = false;
 
-            if (result.erro) {
-                resultadoDiv.innerHTML = `<p style="color: red;">Erro: ${result.erro}</p>`;
-            } else if (result.tabela_html) {
-                resultadoDiv.innerHTML = result.tabela_html;
+                if (result.erro) {
+                    resultadoDiv.innerHTML = `
+                        <div class="result-error fade-in">
+                            <strong>❌ Erro:</strong> ${result.erro}
+                        </div>
+                    `;
+                } else if (result.tabela_html) {
+                    resultadoDiv.innerHTML = `
+                        <div class="result-success fade-in">
+                            <strong>✅ Cálculo concluído com sucesso!</strong>
+                        </div>
+                        <div class="fade-in">
+                            ${result.tabela_html}
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                loading.style.display = 'none';
+                calcBtn.disabled = false;
+                resultadoDiv.innerHTML = `
+                    <div class="result-error fade-in">
+                        <strong>❌ Erro de conexão:</strong> ${error.message}
+                    </div>
+                `;
             }
         });
     </script>

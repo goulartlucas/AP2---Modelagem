@@ -22,75 +22,201 @@
             <ul>
                 <li><b>Funções:</b> Use `x`. Ex: `x**3 - 9*x + 3` (para potência), `log(x)` (log natural), `exp(-x) - x`.</li>
                 <li>Use a sintaxe Python/Sympy para as funções.</li>
+                <li><b>Importante:</b> Para bisseção, f(a) e f(b) devem ter sinais opostos!</li>
             </ul>
             <div class="form-grid">
                 <div class="form-group full-width">
-                    <label for="fx">f(x):</label>
-                    <input type="text" id="fx" name="fx" value="exp(-x) - x">
+                    <label for="fx">
+                        f(x):
+                        <span class="tooltip-icon" data-tooltip="Exemplo: x**2 - 4 ou exp(-x) - x">?</span>
+                    </label>
+                    <input type="text" id="fx" name="fx" value="exp(-x) - x" required>
+                    <span class="error-message" id="fx-error">Digite uma função válida</span>
+                    <div class="function-examples">
+                        <strong>Exemplos:</strong> 
+                        <code>x**3 - 9*x + 3</code>, 
+                        <code>log(x)</code>, 
+                        <code>exp(-x) - x</code>,
+                        <code>sin(x) - x/2</code>
+                    </div>
                 </div>
                 
                 <div class="form-group">
-                    <label for="a">Intervalo [a]:</label>
-                    <input type="text" id="a" name="a" value="0">
+                    <label for="a">
+                        Intervalo [a]:
+                        <span class="tooltip-icon" data-tooltip="Limite inferior do intervalo">?</span>
+                    </label>
+                    <input type="number" step="any" id="a" name="a" value="0" required>
+                    <span class="error-message" id="a-error">Digite um número válido</span>
                 </div>
                 
                 <div class="form-group">
-                    <label for="b">Intervalo [b]:</label>
-                    <input type="text" id="b" name="b" value="1">
+                    <label for="b">
+                        Intervalo [b]:
+                        <span class="tooltip-icon" data-tooltip="Limite superior do intervalo (deve ser > a)">?</span>
+                    </label>
+                    <input type="number" step="any" id="b" name="b" value="1" required>
+                    <span class="error-message" id="b-error">b deve ser maior que a</span>
                 </div>
                 
                 <div class="form-group">
-                    <label for="erro">Erro (%):</label>
-                    <input type="text" id="erro" name="erro" value="0.05">
+                    <label for="erro">
+                        Erro (%):
+                        <span class="tooltip-icon" data-tooltip="Tolerância de erro em porcentagem">?</span>
+                    </label>
+                    <input type="number" step="any" id="erro" name="erro" value="0.05" min="0.0001" required>
+                    <span class="error-message" id="erro-error">Erro deve ser > 0</span>
                 </div>
                 
                 <div class="form-group">
-                    <label for="iteracoes">Máx. Iterações:</label>
-                    <input type="text" id="iteracoes" name="iteracoes" value="15">
+                    <label for="iteracoes">
+                        Máx. Iterações:
+                        <span class="tooltip-icon" data-tooltip="Número máximo de iterações permitidas">?</span>
+                    </label>
+                    <input type="number" id="iteracoes" name="iteracoes" value="15" min="1" max="100" required>
+                    <span class="error-message" id="iteracoes-error">Entre 1 e 100</span>
                 </div>
                 
-                <button type="submit" class="calc-button">Calcular</button>
+                <button type="submit" class="calc-button" id="calc-btn">Calcular 💖</button>
             </div>
         </form>
 
-        <div id="loading">Calculando... 💖</div>
+        <div id="loading" style="display: none;">
+            <div class="spinner"></div>
+            <p>Calculando... 💖</p>
+        </div>
         <div id="resultado"></div>
     </div>
 
     <script>
+        // Validação em tempo real
+        const inputs = {
+            fx: document.getElementById('fx'),
+            a: document.getElementById('a'),
+            b: document.getElementById('b'),
+            erro: document.getElementById('erro'),
+            iteracoes: document.getElementById('iteracoes')
+        };
+
+        const calcBtn = document.getElementById('calc-btn');
+
+        function validateInput(inputId) {
+            const input = inputs[inputId];
+            const errorMsg = document.getElementById(`${inputId}-error`);
+            let isValid = true;
+
+            if (inputId === 'fx') {
+                isValid = input.value.trim().length > 0;
+            } else if (inputId === 'a' || inputId === 'b' || inputId === 'erro') {
+                isValid = !isNaN(parseFloat(input.value)) && input.value.trim() !== '';
+            } else if (inputId === 'iteracoes') {
+                const val = parseInt(input.value);
+                isValid = !isNaN(val) && val >= 1 && val <= 100;
+            }
+
+            // Validação adicional: b > a
+            if (inputId === 'b' || inputId === 'a') {
+                const a = parseFloat(inputs.a.value);
+                const b = parseFloat(inputs.b.value);
+                if (!isNaN(a) && !isNaN(b) && b <= a) {
+                    if (inputId === 'b') {
+                        isValid = false;
+                        errorMsg.textContent = 'b deve ser maior que a';
+                    }
+                }
+            }
+
+            if (isValid) {
+                input.classList.remove('invalid');
+                input.classList.add('valid');
+                errorMsg.classList.remove('show');
+            } else {
+                input.classList.add('invalid');
+                input.classList.remove('valid');
+                errorMsg.classList.add('show');
+            }
+
+            return isValid;
+        }
+
+        function validateForm() {
+            let allValid = true;
+            for (let key in inputs) {
+                if (!validateInput(key)) {
+                    allValid = false;
+                }
+            }
+            calcBtn.disabled = !allValid;
+            return allValid;
+        }
+
+        // Adiciona listeners para validação em tempo real
+        for (let key in inputs) {
+            inputs[key].addEventListener('input', () => validateForm());
+            inputs[key].addEventListener('blur', () => validateInput(key));
+        }
+
+        // Validação inicial
+        validateForm();
+
         document.getElementById('calc-form').addEventListener('submit', async function(e) {
-            e.preventDefault(); // Impede o envio padrão do form
+            e.preventDefault();
+            
+            if (!validateForm()) {
+                return;
+            }
             
             const loading = document.getElementById('loading');
             const resultadoDiv = document.getElementById('resultado');
             
             loading.style.display = 'block';
             resultadoDiv.innerHTML = '';
+            calcBtn.disabled = true;
 
-            // Pega os dados do form
             const data = {
-                fx: document.getElementById('fx').value,
-                a: document.getElementById('a').value,
-                b: document.getElementById('b').value,
-                erro: document.getElementById('erro').value,
-                iteracoes: document.getElementById('iteracoes').value
+                fx: inputs.fx.value,
+                a: inputs.a.value,
+                b: inputs.b.value,
+                erro: inputs.erro.value,
+                iteracoes: inputs.iteracoes.value
             };
 
-            // Envia os dados para o backend (app.py)
-            const response = await fetch('/calcular_bissecao', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            });
+            try {
+                const response = await fetch('/calcular_bissecao', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
 
-            const result = await response.json();
-            
-            loading.style.display = 'none';
+                const result = await response.json();
+                
+                loading.style.display = 'none';
+                calcBtn.disabled = false;
 
-            if (result.erro) {
-                resultadoDiv.innerHTML = `<p style="color: red;">Erro: ${result.erro}</p>`;
-            } else if (result.tabela_html) {
-                resultadoDiv.innerHTML = result.tabela_html;
+                if (result.erro) {
+                    resultadoDiv.innerHTML = `
+                        <div class="result-error fade-in">
+                            <strong>❌ Erro:</strong> ${result.erro}
+                        </div>
+                    `;
+                } else if (result.tabela_html) {
+                    resultadoDiv.innerHTML = `
+                        <div class="result-success fade-in">
+                            <strong>✅ Cálculo concluído com sucesso!</strong>
+                        </div>
+                        <div class="fade-in">
+                            ${result.tabela_html}
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                loading.style.display = 'none';
+                calcBtn.disabled = false;
+                resultadoDiv.innerHTML = `
+                    <div class="result-error fade-in">
+                        <strong>❌ Erro de conexão:</strong> ${error.message}
+                    </div>
+                `;
             }
         });
     </script>

@@ -2,7 +2,6 @@ import math
 from flask import Flask, render_template, request, jsonify
 from sympy import Symbol, diff, sympify, lambdify
 import pandas as pd
-import io
 
 # Inicializa o app Flask
 app = Flask(__name__)
@@ -33,24 +32,33 @@ def calcular_newton(f_str, x0_val, erro_val, k_val):
         f_val = f.subs(x, xi_anterior)
         f_linha_val = f_linha.subs(x, xi_anterior)
         
-        if f_linha_val == 0:
-            return "Derivada zero. O método falhou."
+        if abs(f_linha_val) < 1e-10:
+            return "Derivada zero ou muito próxima de zero. O método falhou."
             
         # Cálculo do Newton-Raphson
         xi_futuro = xi_anterior - (f_val / f_linha_val)
         resultados["Xi+1"].append(float(xi_futuro))
         
+        # Cálculo do erro
         if i == 0:
-            resultados["[(X(i+1)-Xi)/X(i+1)] x 100%"].append(100.0)
+            erro = 100.0  # Primeira iteração sempre tem erro alto
         else:
-            erro = float(abs(xi_futuro - xi_anterior) / xi_futuro * 100)
-            resultados["[(X(i+1)-Xi)/X(i+1)] x 100%"].append(erro)
-            if erro < erro_val:
-                break
+            if abs(xi_futuro) < 1e-10:
+                erro = 100.0
+            else:
+                erro = float(abs(xi_futuro - xi_anterior) / abs(xi_futuro) * 100)
+        
+        resultados["[(X(i+1)-Xi)/X(i+1)] x 100%"].append(erro)
+        
+        # Verifica convergência (não na primeira iteração)
+        if i > 0 and erro < erro_val:
+            break
         
         xi_anterior = xi_futuro
         
     df = pd.DataFrame(resultados).set_index('i')
+    # Formata números com 6 casas decimais
+    df = df.round(6)
     # Converte o DataFrame para HTML para ser exibido na página
     return df.to_html(classes="table table-striped", border=0)
 
@@ -61,7 +69,7 @@ def calcular_bissecao(f_str, a_val, b_val, erro_val, k_val):
     resultados = {
         "i": [], "a": [], "b": [], "Xi": [],
         "f(a)": [], "f(b)": [], "f(Xi)": [],
-        "|X(i+1) - Xi|/X(i+1)": [1]
+        "|X(i+1) - Xi|/X(i+1)": []
     }
     
     x = Symbol('x')
@@ -71,7 +79,15 @@ def calcular_bissecao(f_str, a_val, b_val, erro_val, k_val):
         func = lambdify(x, f, 'math')
     except Exception as e:
         return f"Erro ao processar a função: {e}"
+    
+    # Validação: verifica se f(a) e f(b) têm sinais opostos
+    fa_inicial = func(a_val)
+    fb_inicial = func(b_val)
+    
+    if fa_inicial * fb_inicial > 0:
+        return "Erro: f(a) e f(b) devem ter sinais opostos para o método da bisseção funcionar!"
 
+    xi_anterior = None
     for i in range(k_val):
         xi = (a_val + b_val) / 2
         fa = func(a_val)
@@ -86,29 +102,34 @@ def calcular_bissecao(f_str, a_val, b_val, erro_val, k_val):
         resultados["f(b)"].append(fb)
         resultados["f(Xi)"].append(fxi)
         
-        erro_calc = 1.0 # Valor default
+        # Cálculo do erro
+        if xi_anterior is None:
+            erro_calc = 100.0  # Primeira iteração
+        else:
+            if abs(xi) < 1e-10:
+                erro_calc = 100.0
+            else:
+                erro_calc = float(abs(xi - xi_anterior) / abs(xi)) * 100
         
-        if i > 0:
-            xi_anterior = resultados["Xi"][-2] # Pega o Xi da iteração anterior
-            erro_calc = float(abs(xi - xi_anterior) / xi) * 100
-            resultados["|X(i+1) - Xi|/X(i+1)"].append(erro_calc)
+        resultados["|X(i+1) - Xi|/X(i+1)"].append(erro_calc)
         
-        if erro_calc < erro_val and i > 0:
+        # Verifica convergência (não na primeira iteração)
+        if xi_anterior is not None and erro_calc < erro_val:
             break
-            
+        
+        # Atualiza intervalo
         if fxi * fa < 0:
             b_val = xi
         elif fxi * fa > 0:
             a_val = xi
-        elif fxi == 0:
+        elif abs(fxi) < 1e-10:  # Encontrou a raiz exata
             break
             
-    # Remove o '1' inicial se mais de uma iteração ocorreu
-    if len(resultados["i"]) > 0:
-        resultados["|X(i+1) - Xi|/X(i+1)"][0] = resultados["|X(i+1) - Xi|/X(i+1)"][1] if len(resultados["i"]) > 1 else 0.0
-
+        xi_anterior = xi
 
     df = pd.DataFrame(resultados).set_index('i')
+    # Formata números com 6 casas decimais
+    df = df.round(6)
     return df.to_html(classes="table table-striped", border=0)
 
 
